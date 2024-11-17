@@ -113,6 +113,13 @@ public:
     void print() const {
         cout << "Текущее время воспроизведения: " << currentTime << "/" << totalTime << " sec [" << (isPlaying ? "Playing" : "Paused") << "]\n";
     }
+
+    // Функция для перемещения по таймлайну на 5 сек ##через указатель##
+    void jump_5sec_timeline(int* time) {
+        if (time != nullprt) {
+            *time += 5;
+        }
+    }
 };
 
 class Playlist {
@@ -277,6 +284,15 @@ int main() {
     for (int i = 0; i < numUsers; ++i) {
         usersArray[i].print_user_info();
     }
+
+    int timeline = 0;
+    char question;
+    cout << "\nХотите перемотать трек на 5 сек вперед? (y/n)";
+    cin >> question;
+    if (question == 'y' || question == "Y") {
+        TrackProgress.jump_5sec_timeline(&timeline);
+    }
+    std::cout << "трек прогресс" << timeline;
 
     // Освобождаем память, выделенную для массива объектов
     delete[] usersArray;
