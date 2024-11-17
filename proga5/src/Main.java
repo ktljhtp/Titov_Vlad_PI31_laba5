@@ -20,8 +20,8 @@ class Content {
 }
 
 class AudioSettings {
-    private int volume;  // Уровень громкости (0 - 100)
-    private int balance; // Баланс между левым и правым каналом (-50 до +50)
+    private int volume;
+    private int balance;
 
     public void set(int volume, int balance) {
         this.volume = volume;
@@ -105,7 +105,17 @@ class Playlist {
             System.out.print("Введите исполнителя: ");
             String artist = scanner.next();
             System.out.print("Продолжительность в секундах: ");
-            float duration = scanner.nextFloat();
+            float duration;
+            try {
+                duration = scanner.nextFloat();
+                if (duration <= 0) {
+                    throw new IllegalArgumentException("Продолжительность должна быть положительным числом!");
+                }
+            } catch (Exception e) {
+                System.out.println("Ошибка: неверный формат продолжительности.");
+                scanner.next(); // Пропустить некорректный ввод
+                continue;
+            }
             System.out.print("Введите формат трека: ");
             String format = scanner.next();
             Content track = new Content();
