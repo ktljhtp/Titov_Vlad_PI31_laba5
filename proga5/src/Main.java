@@ -55,15 +55,24 @@ class Device {
 }
 
 // Вспомогательный класс для возврата настроек эквалайзера
-class EqualizerSettings {
-    public int bass;
-    public int mid;
-    public int treble;
+class Equalizer {
+    private int bass;
+    private int mid;
+    private int treble;
 
-    public EqualizerSettings(int bass, int mid, int treble) {
+    public void set(int bass, int mid, int treble) {
         this.bass = bass;
         this.mid = mid;
         this.treble = treble;
+    }
+
+    // Метод, возвращающий объект вспомогательного класса EqualizerSettings
+    public EqualizerSettings getSettings() {
+        return new EqualizerSettings(bass, mid, treble);
+    }
+
+    public void print() {
+        System.out.println("Equalizer - бас: " + bass + ", средние частоты: " + mid + ", высокие частоты: " + treble);
     }
 }
 
