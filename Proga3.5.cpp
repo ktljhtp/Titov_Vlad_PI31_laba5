@@ -24,6 +24,9 @@ public:
     void print() {
         cout << "Track: " << title << " by " << artist << " (Duration: " << duration << " sec, Format: " << format << ")\n";
     }
+    float getDuration() const {
+        return duration;
+    }
 };
 
 class AudioSettings {
@@ -98,11 +101,12 @@ public:
 
 class TrackProgress {
 private:
-    float currentTime;  // Текущее время воспроизведения в секундах
     float totalTime;    // Общее время трека в секундах
     int isPlaying;      // Флаг воспроизведения (1 — воспроизводится, 0 — пауза)
 
 public:
+    int currentTime;  // Текущее время воспроизведения в секундах
+
     void set(float& c, float& t, int& i) {
         currentTime = c;
         totalTime = t;
@@ -116,11 +120,12 @@ public:
 
     // Функция для перемещения по таймлайну на 5 сек ##через указатель##
     void jump_5sec_timeline(int* time) {
-        if (time != nullprt) {
+        if (time != nullptr) {
             *time += 5;
         }
     }
 };
+
 
 class Playlist {
 private:
@@ -133,9 +138,11 @@ public:
     void name(string name) {
         name_playlist = name;
     }
+
     void input_settings() {
         setting.input_settings();
     }
+
     // Функция для добавления треков в плейлист
     void add_tracks_to_playlist(int count) {
         delete[] tracks; // Освобождаем память, если массив уже существует
@@ -170,7 +177,18 @@ public:
     void print_playlist_settings() {
         setting.print();
     }
+
+    friend float calculateTotalDuration(Playlist& playlist);
 };
+
+// Дружественная функции
+float calculateTotalDuration(Playlist& playlist) {
+    float totalDuration = 0.0;
+    for (int i = 0; i < playlist.trackCount; i++) {
+        totalDuration += playlist.tracks[i].getDuration();
+    }
+    return totalDuration; // Возвращаем общее время
+}
 
 class User {
 private:
@@ -237,6 +255,10 @@ public:
         cin >> preferredCodec;
     }
 
+    vector<Playlist*> getPlaylists() const {
+        return playlists;
+    }
+
     // Функция для вывода информации о пользователе
     void print_user_info() const {
         cout << "\nИнформация о пользователе:\n";
@@ -260,7 +282,7 @@ public:
 int main() {
     setlocale(LC_ALL, "Russian");
 
-    // Демонстрация динамического массива объектов класса
+    // Демонстрация динамического массива объектов класса User
     int numUsers;
     cout << "Введите количество пользователей: ";
     cin >> numUsers;
@@ -271,31 +293,41 @@ int main() {
         cout << "\nПользователь " << i + 1 << ":\n";
         usersArray[i].fill_user_data();
 
+        // Добавление плейлистов для пользователя
         char addMore;
         do {
-            usersArray[i].add_playlist_user(); // Allow users to add playlists
+            usersArray[i].add_playlist_user();
             cout << "Хотите добавить еще один плейлист? (y/n): ";
             cin >> addMore;
         } while (addMore == 'y' || addMore == 'Y');
     }
 
-    // Вывод информации о каждом пользователе
+    // Вывод информации о каждом пользователе и демонстрация работы calculateTotalDuration
     cout << "\nИнформация о пользователях:\n";
     for (int i = 0; i < numUsers; ++i) {
+        cout << "\n--- Пользователь " << i + 1 << " ---\n";
         usersArray[i].print_user_info();
+
+        // Вычисление общей продолжительности всех треков во всех плейлистах
+        float totalDuration = 0.0;
+        for (Playlist* playlist : usersArray[i].getPlaylists()) { // Получаем список плейлистов пользователя
+            totalDuration += calculateTotalDuration(*playlist);
+        }
+        cout << "\nОбщая продолжительность всех треков пользователя: " << totalDuration << " секунд\n";
     }
 
-    int timeline = 0;
+    // Демонстрация работы указателя
     char question;
-    cout << "\nХотите перемотать трек на 5 сек вперед? (y/n)";
+    TrackProgress trackProgress;
+    trackProgress.currentTime = 0;
+    cout << "\nХотите перемотать трек на 5 сек вперед? (y/n): ";
     cin >> question;
-    if (question == 'y' || question == "Y") {
-        TrackProgress.jump_5sec_timeline(&timeline);
+    if (question == 'y' || question == 'Y') {
+        trackProgress.jump_5sec_timeline(&trackProgress.currentTime);
     }
-    std::cout << "трек прогресс" << timeline;
+    std::cout << "Трек прогресс: " << trackProgress.currentTime << " секунд\n";
 
     // Освобождаем память, выделенную для массива объектов
     delete[] usersArray;
-
-
 }
+
