@@ -2,10 +2,10 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 class Content {
-    private String title;   // Название трека
-    private String artist;  // Исполнитель
-    private float duration; // Продолжительность в секундах
-    private String format;  // Формат (например, MP3)
+    private String title;
+    private String artist;
+    private float duration;
+    private String format;
 
     public void set(String title, String artist, float duration, String format) {
         this.title = title;
@@ -54,31 +54,9 @@ class Device {
     }
 }
 
-// Вспомогательный класс для возврата настроек эквалайзера
-class Equalizer {
-    private int bass;
-    private int mid;
-    private int treble;
-
-    public void set(int bass, int mid, int treble) {
-        this.bass = bass;
-        this.mid = mid;
-        this.treble = treble;
-    }
-
-    // Метод, возвращающий объект вспомогательного класса EqualizerSettings
-    public EqualizerSettings getSettings() {
-        return new EqualizerSettings(bass, mid, treble);
-    }
-
-    public void print() {
-        System.out.println("Equalizer - бас: " + bass + ", средние частоты: " + mid + ", высокие частоты: " + treble);
-    }
-}
-
 class PlaylistSettings {
-    private boolean shuffle; // Включен ли режим случайного воспроизведения
-    private boolean repeat;  // Включен ли режим повторного воспроизведения
+    private boolean shuffle;
+    private boolean repeat;
 
     public void inputSettings(Scanner scanner) {
         System.out.print("Введите режим случайного воспроизведения (1 - включено, 0 - выключено): ");
@@ -94,7 +72,7 @@ class PlaylistSettings {
 
 class Playlist {
     private String name;
-    private PlaylistSettings setting = new PlaylistSettings();
+    private PlaylistSettings settings = new PlaylistSettings();
     private ArrayList<Content> tracks = new ArrayList<>();
 
     public void setName(String name) {
@@ -102,10 +80,12 @@ class Playlist {
     }
 
     public void inputSettings(Scanner scanner) {
-        setting.inputSettings(scanner);
+        settings.inputSettings(scanner);
     }
 
-    public void addTracks(Scanner scanner, int count) {
+    public void addTracks(Scanner scanner) {
+        System.out.print("Введите количество треков для добавления в плейлист: ");
+        int count = scanner.nextInt();
         tracks.clear();
 
         for (int i = 0; i < count; i++) {
@@ -114,17 +94,7 @@ class Playlist {
             System.out.print("Введите исполнителя: ");
             String artist = scanner.next();
             System.out.print("Продолжительность в секундах: ");
-            float duration;
-            try {
-                duration = scanner.nextFloat();
-                if (duration <= 0) {
-                    throw new IllegalArgumentException("Продолжительность должна быть положительным числом!");
-                }
-            } catch (Exception e) {
-                System.out.println("Ошибка: неверный формат продолжительности.");
-                scanner.next(); // Пропустить некорректный ввод
-                continue;
-            }
+            float duration = scanner.nextFloat();
             System.out.print("Введите формат трека: ");
             String format = scanner.next();
             Content track = new Content();
@@ -134,14 +104,15 @@ class Playlist {
     }
 
     public void printPlaylistInfo() {
+        System.out.println("Плейлист: " + name);
         for (int i = 0; i < tracks.size(); i++) {
-            System.out.print("Track " + (i + 1) + ": ");
+            System.out.print("Трек " + (i + 1) + ": ");
             tracks.get(i).print();
         }
     }
 
-    public void printPlaylistSettings() {
-        setting.print();
+    public void printSettings() {
+        settings.print();
     }
 }
 
@@ -149,25 +120,7 @@ class User {
     private String username;
     private AudioSettings audioSettings = new AudioSettings();
     private Device device = new Device();
-    private Equalizer equalizer = new Equalizer();
-    private String preferredCodec;
     private ArrayList<Playlist> playlists = new ArrayList<>();
-
-    public void addPlaylist(Scanner scanner) {
-        Playlist newPlaylist = new Playlist();
-        System.out.print("Введите название плейлиста: ");
-        String name = scanner.next();
-        newPlaylist.setName(name);
-
-        System.out.print("Введите количество треков для добавления в плейлист: ");
-        int trackCount = scanner.nextInt();
-        newPlaylist.addTracks(scanner, trackCount);
-
-        System.out.println("Введите настройки плейлиста:");
-        newPlaylist.inputSettings(scanner);
-
-        playlists.add(newPlaylist);
-    }
 
     public void fillUserData(Scanner scanner) {
         System.out.print("Введите имя пользователя: ");
@@ -186,32 +139,28 @@ class User {
         System.out.print("Введите текущую громкость устройства: ");
         int currentVolume = scanner.nextInt();
         device.set(deviceName, maxVolume, currentVolume);
+    }
 
-        System.out.print("Введите уровень низких частот (-10 до +10): ");
-        int bass = scanner.nextInt();
-        System.out.print("Введите уровень средних частот (-10 до +10): ");
-        int mid = scanner.nextInt();
-        System.out.print("Введите уровень высоких частот (-10 до +10): ");
-        int treble = scanner.nextInt();
-        equalizer.set(bass, mid, treble);
-
-        System.out.print("Введите предпочитаемый аудиоформат (например, MP3): ");
-        preferredCodec = scanner.next();
+    public void addPlaylist(Scanner scanner) {
+        Playlist playlist = new Playlist();
+        System.out.print("Введите название плейлиста: ");
+        String name = scanner.next();
+        playlist.setName(name);
+        playlist.addTracks(scanner);
+        playlist.inputSettings(scanner);
+        playlists.add(playlist);
     }
 
     public void printUserInfo() {
-        System.out.println("\nИнформация о пользователе:");
-        System.out.println("Имя: " + username);
+        System.out.println("Имя пользователя: " + username);
         audioSettings.print();
         device.print();
-        equalizer.print();
-        System.out.println("Preferred Codec: " + preferredCodec);
 
         System.out.println("\nПлейлисты:");
         for (int i = 0; i < playlists.size(); i++) {
             System.out.println("Плейлист " + (i + 1) + ":");
             playlists.get(i).printPlaylistInfo();
-            playlists.get(i).printPlaylistSettings();
+            playlists.get(i).printSettings();
         }
     }
 }
@@ -219,14 +168,15 @@ class User {
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        Device.printDeviceType();
 
         System.out.print("Введите количество пользователей: ");
         int numUsers = scanner.nextInt();
         User[] usersArray = new User[numUsers];
 
         for (int i = 0; i < numUsers; i++) {
-            System.out.println("\nПользователь " + (i + 1) + ":");
             usersArray[i] = new User();
+            System.out.println("\nВведите данные пользователя " + (i + 1) + ":");
             usersArray[i].fillUserData(scanner);
 
             char addMore;
@@ -245,4 +195,3 @@ public class Main {
         scanner.close();
     }
 }
-
