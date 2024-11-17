@@ -34,9 +34,10 @@ class AudioSettings {
 }
 
 class Device {
-    private String deviceName;  // Название устройства
-    private int maxVolume;      // Максимальная громкость устройства
-    private int currentVolume;  // Текущая громкость устройства
+    private static String deviceType = "Audio Device";
+    private String deviceName;
+    private int maxVolume;
+    private int currentVolume;
 
     public void set(String deviceName, int maxVolume, int currentVolume) {
         this.deviceName = deviceName;
@@ -45,23 +46,24 @@ class Device {
     }
 
     public void print() {
-        System.out.println("Название устройства: " + deviceName + ", Максимальная громкость устройства: " + maxVolume + ", Текущая громкость устройства: " + currentVolume);
+        System.out.println("Название устройства: " + deviceName + ", Максимальная громкость: " + maxVolume + ", Текущая громкость: " + currentVolume);
+    }
+
+    public static void printDeviceType() {
+        System.out.println("Тип устройства: " + deviceType);
     }
 }
 
-class Equalizer {
-    private int bass;   // Уровень низких частот (-10 до +10)
-    private int mid;    // Уровень средних частот (-10 до +10)
-    private int treble; // Уровень высоких частот (-10 до +10)
+// Вспомогательный класс для возврата настроек эквалайзера
+class EqualizerSettings {
+    public int bass;
+    public int mid;
+    public int treble;
 
-    public void set(int bass, int mid, int treble) {
+    public EqualizerSettings(int bass, int mid, int treble) {
         this.bass = bass;
         this.mid = mid;
         this.treble = treble;
-    }
-
-    public void print() {
-        System.out.println("Equalizer - бас: " + bass + ", средние частоты: " + mid + ", высокие частоты: " + treble);
     }
 }
 
