@@ -16,10 +16,11 @@ private:
     string format;  // Формат (например, MP3)
 public:
     void set(string& t, string& a, float d, string& f) {
-        title = t;
-        artist = a;
-        duration = d;
-        format = f;
+        // работа с this
+        this->title = t;
+        this->artist = a;
+        this->duration = d;
+        this->format = f;
     }
     void print() {
         cout << "Track: " << title << " by " << artist << " (Duration: " << duration << " sec, Format: " << format << ")\n";
@@ -235,6 +236,37 @@ public:
 
     // Дружественная функция для вычисления общей продолжительности
     friend float calculateTotalDuration(Playlist& playlist);
+
+
+    // Оператор присваивания
+    Playlist& operator=(const Playlist& other) {
+        // Проверка на самоприсваивание
+        if (this == &other) {
+            return *this;
+        }
+
+        // Освобождаем память текущего объекта
+        delete[] tracks;
+
+        // Копируем данные из другого объекта
+        name_playlist = other.name_playlist;
+        setting = other.setting;
+        trackCount = other.trackCount;
+
+        // Копируем массив треков
+        if (trackCount > 0) {
+            tracks = new Content[trackCount];
+            for (int i = 0; i < trackCount; ++i) {
+                tracks[i] = other.tracks[i]; // Используем оператор присваивания для Content
+            }
+        }
+        else {
+            tracks = nullptr;
+        }
+
+        // Возвращаем текущий объект для цепочки присваивания
+        return *this;
+    }
 };
 
 
@@ -383,6 +415,15 @@ int main() {
         trackProgress.jump_5sec_timeline(&trackProgress.currentTime);
     }
     std::cout << "Трек прогресс: " << trackProgress.currentTime << " секунд\n";
+
+    //демонстрация работы перегрузки
+    Playlist playlist1;
+    playlist1.add_tracks_to_playlist(2);
+
+    Playlist playlist2;
+    playlist2 = playlist1; // Используется перегруженный оператор присваивания
+
+    playlist2.print_playlist_info();
 
     // Освобождаем память, выделенную для массива объектов
     delete[] usersArray;
