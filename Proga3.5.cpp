@@ -131,78 +131,67 @@ public:
 class Playlist {
 private:
     string name_playlist;
-    PlaylistSettings setting; // Настройка плейлиста
-    Content* tracks;          // Массив треков
-    int trackCount;           // Количество треков
+    PlaylistSettings setting;
+    Content* tracks;
+    int trackCount;
+
+    // Статическое поле для общего количества треков во всех плейлистах
+    static int totalTrackCount;
 
 public:
     // Конструктор по умолчанию
     Playlist() : tracks(nullptr), trackCount(0) {}
 
     // Конструктор копирования
-    Playlist(const Playlist& other) {
-        name_playlist = other.name_playlist;
-        setting = other.setting;
-        trackCount = other.trackCount;
+    Playlist(const Playlist& other) : name_playlist(other.name_playlist), trackCount(other.trackCount) {
+        tracks = new Content[trackCount];
+        for (int i = 0; i < trackCount; i++) {
+            tracks[i] = other.tracks[i];
+        }
+        totalTrackCount += trackCount;
+    }
 
-        // Копируем массив треков
-        if (trackCount > 0) {
-            tracks = new Content[trackCount];
-            for (int i = 0; i < trackCount; ++i) {
-                tracks[i] = other.tracks[i];
-            }
-        }
-        else {
-            tracks = nullptr;
-        }
+    // Деструктор
+    ~Playlist() {
+        totalTrackCount -= trackCount;
+        delete[] tracks;
     }
 
     // Оператор присваивания
     Playlist& operator=(const Playlist& other) {
         if (this == &other) {
-            return *this; // Проверка на самоприсваивание
+            return *this;
         }
 
-        // Освобождаем текущую память
         delete[] tracks;
 
-        // Копируем данные
         name_playlist = other.name_playlist;
-        setting = other.setting;
         trackCount = other.trackCount;
-
-        // Копируем массив треков
-        if (trackCount > 0) {
-            tracks = new Content[trackCount];
-            for (int i = 0; i < trackCount; ++i) {
-                tracks[i] = other.tracks[i];
-            }
+        tracks = new Content[trackCount];
+        for (int i = 0; i < trackCount; i++) {
+            tracks[i] = other.tracks[i];
         }
-        else {
-            tracks = nullptr;
-        }
-
         return *this;
     }
 
-    // Деструктор
-    ~Playlist() {
-        delete[] tracks;
+    // Метод для задания названия плейлиста
+    void setName(const string& name) {
+        this->name_playlist = name;
     }
 
-    // Установка имени плейлиста
-    void name(string name) {
-        name_playlist = name;
-    }
-
-    // Ввод настроек плейлиста
+    // Метод ввода настроек плейлиста
     void input_settings() {
         setting.input_settings();
     }
 
-    // Функция для добавления треков в плейлист
-    void add_tracks_to_playlist(int count) {
-        delete[] tracks; // Освобождаем память, если массив уже существует
+    // Добавление треков в плейлист
+    //try
+    try {
+        if (count <= 0) {
+            throw invalid_argument("Количество треков должно быть больше нуля.");
+        }
+
+        delete[] tracks;
         tracks = new Content[count];
         trackCount = count;
 
@@ -217,57 +206,40 @@ public:
             cin >> duration;
             cout << "Введите формат трека: ";
             cin >> format;
+
+            // Возможное исключение из метода set()
             tracks[i].set(title, artist, duration, format);
         }
-    }
 
-    // Функция для вывода информации о треках
-    void print_playlist_info() {
+    }
+    catch (const invalid_argument& e) {
+        cout << "Ошибка: " << e.what() << endl;
+    }
+    catch (const exception& e) {
+        cout << "Неизвестная ошибка: " << e.what() << endl;
+    }
+}
+
+    // Вывод информации о треках
+    void print_playlist_info() const {
         for (int i = 0; i < trackCount; i++) {
             cout << "Track " << i + 1 << ": ";
             tracks[i].print();
         }
     }
 
-    // Функция для вывода настроек плейлиста
-    void print_playlist_settings() {
+    // Вывод настроек плейлиста
+    void print_playlist_settings() const {
         setting.print();
     }
 
-    // Дружественная функция для вычисления общей продолжительности
-    friend float calculateTotalDuration(Playlist& playlist);
-
-
-    // Оператор присваивания
-    Playlist& operator=(const Playlist& other) {
-        // Проверка на самоприсваивание
-        if (this == &other) {
-            return *this;
-        }
-
-        // Освобождаем память текущего объекта
-        delete[] tracks;
-
-        // Копируем данные из другого объекта
-        name_playlist = other.name_playlist;
-        setting = other.setting;
-        trackCount = other.trackCount;
-
-        // Копируем массив треков
-        if (trackCount > 0) {
-            tracks = new Content[trackCount];
-            for (int i = 0; i < trackCount; ++i) {
-                tracks[i] = other.tracks[i]; // Используем оператор присваивания для Content
-            }
-        }
-        else {
-            tracks = nullptr;
-        }
-
-        // Возвращаем текущий объект для цепочки присваивания
-        return *this;
+    // Статический метод для получения общего количества треков во всех плейлистах
+    static int getTotalTrackCount() {
+        return totalTrackCount;
     }
 };
+
+
 
 
 // Дружественная функции
@@ -367,6 +339,8 @@ public:
     }
 };
 
+// Инициализация статического поля
+int Playlist::totalTrackCount = 0;
 
 int main() {
     setlocale(LC_ALL, "Russian");
@@ -424,6 +398,10 @@ int main() {
     playlist2 = playlist1; // Используется перегруженный оператор присваивания
 
     playlist2.print_playlist_info();
+
+    
+    // Использование статического метода
+    cout << "Total number of tracks across all playlists: " << Playlist::getTotalTrackCount() << endl;
 
     // Освобождаем память, выделенную для массива объектов
     delete[] usersArray;
