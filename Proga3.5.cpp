@@ -130,15 +130,71 @@ public:
 class Playlist {
 private:
     string name_playlist;
-    PlaylistSettings setting; //настройка плейлиста  
-    Content* tracks;  // Массив треков
-    int trackCount;  // Количество треков
+    PlaylistSettings setting; // Настройка плейлиста
+    Content* tracks;          // Массив треков
+    int trackCount;           // Количество треков
 
 public:
+    // Конструктор по умолчанию
+    Playlist() : tracks(nullptr), trackCount(0) {}
+
+    // Конструктор копирования
+    Playlist(const Playlist& other) {
+        name_playlist = other.name_playlist;
+        setting = other.setting;
+        trackCount = other.trackCount;
+
+        // Копируем массив треков
+        if (trackCount > 0) {
+            tracks = new Content[trackCount];
+            for (int i = 0; i < trackCount; ++i) {
+                tracks[i] = other.tracks[i];
+            }
+        }
+        else {
+            tracks = nullptr;
+        }
+    }
+
+    // Оператор присваивания
+    Playlist& operator=(const Playlist& other) {
+        if (this == &other) {
+            return *this; // Проверка на самоприсваивание
+        }
+
+        // Освобождаем текущую память
+        delete[] tracks;
+
+        // Копируем данные
+        name_playlist = other.name_playlist;
+        setting = other.setting;
+        trackCount = other.trackCount;
+
+        // Копируем массив треков
+        if (trackCount > 0) {
+            tracks = new Content[trackCount];
+            for (int i = 0; i < trackCount; ++i) {
+                tracks[i] = other.tracks[i];
+            }
+        }
+        else {
+            tracks = nullptr;
+        }
+
+        return *this;
+    }
+
+    // Деструктор
+    ~Playlist() {
+        delete[] tracks;
+    }
+
+    // Установка имени плейлиста
     void name(string name) {
         name_playlist = name;
     }
 
+    // Ввод настроек плейлиста
     void input_settings() {
         setting.input_settings();
     }
@@ -162,7 +218,6 @@ public:
             cin >> format;
             tracks[i].set(title, artist, duration, format);
         }
-
     }
 
     // Функция для вывода информации о треках
@@ -178,8 +233,10 @@ public:
         setting.print();
     }
 
+    // Дружественная функция для вычисления общей продолжительности
     friend float calculateTotalDuration(Playlist& playlist);
 };
+
 
 // Дружественная функции
 float calculateTotalDuration(Playlist& playlist) {
