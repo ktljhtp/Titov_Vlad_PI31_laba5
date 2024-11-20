@@ -8,10 +8,16 @@
 
 using namespace std;
 
-// Класс исключений
-class PlaylistException : public runtime_error {
+class TrackProgress {
 public:
-    explicit PlaylistException(const string& message) : runtime_error(message) {}
+    float currentTime;
+
+    // Метод для перемотки трека на 5 секунд вперед
+    void jump_5sec_timeline(float* time) {
+        if (time) {
+            *time += 5.0f;
+        }
+    }
 };
 
 class Content {
@@ -33,14 +39,7 @@ public:
     float getDuration() const {
         return duration;
     }
-
-    friend bool operator==(const Content& c1, const Content& c2); // Дружественная функция
 };
-
-bool operator==(const Content& c1, const Content& c2) {
-    return c1.title == c2.title && c1.artist == c2.artist &&
-        c1.duration == c2.duration && c1.format == c2.format;
-}
 
 class Playlist {
 private:
@@ -86,41 +85,29 @@ public:
     }
 
     void add_tracks_to_playlist(int count) {
-        try {
-            if (count <= 0) {
-                throw PlaylistException("Количество треков должно быть больше нуля.");
-            }
+        delete[] tracks;
+        tracks = new Content[count];
+        trackCount = count;
 
-            delete[] tracks;
-            tracks = new Content[count];
-            trackCount = count;
+        cin.ignore(); // Очистка буфера ввода
+        for (int i = 0; i < count; i++) {
+            string title, artist, format;
+            float duration;
 
+            cout << "Введите название трека: ";
+            getline(cin, title);
+            cout << "Введите исполнителя: ";
+            getline(cin, artist);
+            cout << "Продолжительность в секундах: ";
+            cin >> duration;
             cin.ignore(); // Очистка буфера ввода
-            for (int i = 0; i < count; i++) {
-                string title, artist, format;
-                float duration;
+            cout << "Введите формат трека: ";
+            getline(cin, format);
 
-                cout << "Введите название трека: ";
-                getline(cin, title);
-                cout << "Введите исполнителя: ";
-                getline(cin, artist);
-                cout << "Продолжительность в секундах: ";
-                cin >> duration;
-                cin.ignore(); // Очистка буфера ввода
-                cout << "Введите формат трека: ";
-                getline(cin, format);
+            tracks[i].set(title, artist, duration, format);
+        }
 
-                tracks[i].set(title, artist, duration, format);
-            }
-
-            totalTrackCount += count;
-        }
-        catch (const PlaylistException& e) {
-            cout << "Ошибка: " << e.what() << endl;
-        }
-        catch (const exception& e) {
-            cout << "Неизвестная ошибка: " << e.what() << endl;
-        }
+        totalTrackCount += count;
     }
 
     void print_playlist_info() const {
@@ -135,22 +122,6 @@ public:
         return tracks;
     }
 
-    // Возврат значения через указатель
-    const Content* getTrackByIndexPtr(int index) const {
-        if (index >= 0 && index < trackCount) {
-            return &tracks[index];
-        }
-        return nullptr; // Вернем nullptr, если индекс неверный
-    }
-
-    // Возврат значения через ссылку
-    Content& getTrackByIndexRef(int index) {
-        if (index >= 0 && index < trackCount) {
-            return tracks[index];
-        }
-        throw out_of_range("Неверный индекс трека.");
-    }
-
     int getTrackCount() const {
         return trackCount;
     }
@@ -158,40 +129,17 @@ public:
     static int getTotalTrackCount() {
         return totalTrackCount;
     }
-
-    // Перегрузка оператора сравнения
-    friend bool operator==(const Playlist& p1, const Playlist& p2);
 };
 
 int Playlist::totalTrackCount = 0;
 
-// Перегрузка оператора сравнения для Playlist
-bool operator==(const Playlist& p1, const Playlist& p2) {
-    return p1.name_playlist == p2.name_playlist && p1.trackCount == p2.trackCount;
-}
-
-float calculateTotalDuration(const Playlist& playlist) {
-    float totalDuration = 0.0f;
-    for (int i = 0; i < playlist.getTrackCount(); i++) {
-        totalDuration += playlist.getTracks()[i].getDuration();
-    }
-    return totalDuration;
-}
-
-int main() {
-    setlocale(LC_ALL, "Russian");
-    SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);
-
-    int numUsers;
-    cout << "Введите количество пользователей: ";
-    cin >> numUsers;
-
-    vector<Playlist> playlists;
-
-    for (int i = 0; i < numUsers; ++i) {
+class User {
+private:
+    vector<Playlist> userPlaylists;
+public:
+    void add_playlist_user() {
         Playlist p;
-        cout << "\nВведите название плейлиста для пользователя " << i + 1 << ": ";
+        cout << "Введите название нового плейлиста: ";
         string name;
         cin.ignore(); // Очистка буфера ввода
         getline(cin, name);
@@ -202,18 +150,53 @@ int main() {
         cin >> trackCount;
         p.add_tracks_to_playlist(trackCount);
 
-        playlists.push_back(p);
+        userPlaylists.push_back(p);
+    }
+
+    void print_user_playlists() const {
+        for (size_t i = 0; i < userPlaylists.size(); ++i) {
+            cout << "\nПлейлист " << i + 1 << ":\n";
+            userPlaylists[i].print_playlist_info();
+        }
+    }
+};
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+
+    int numUsers;
+    cout << "Введите количество пользователей: ";
+    cin >> numUsers;
+
+    vector<User> usersArray(numUsers);
+
+    for (int i = 0; i < numUsers; ++i) {
+        char addMore;
+        cout << "\nДобавление плейлистов для пользователя " << i + 1 << ":\n";
+        do {
+            usersArray[i].add_playlist_user();
+            cout << "Хотите добавить еще один плейлист? (y/n): ";
+            cin >> addMore;
+        } while (addMore == 'y' || addMore == 'Y');
     }
 
     for (int i = 0; i < numUsers; ++i) {
-        cout << "\nПлейлист пользователя " << i + 1 << ":\n";
-        playlists[i].print_playlist_info();
+        cout << "\nПлейлисты пользователя " << i + 1 << ":\n";
+        usersArray[i].print_user_playlists();
     }
 
-    cout << "\nОбщее количество треков во всех плейлистах: " << Playlist::getTotalTrackCount() << endl;
-
-    for (int i = 0; i < numUsers; ++i) {
-        float totalDuration = calculateTotalDuration(playlists[i]);
-        cout << "Общая длительность плейлиста пользователя " << i + 1 << ": " << totalDuration << " секунд\n";
+    // Демонстрация работы указателя
+    char question;
+    TrackProgress trackProgress;
+    trackProgress.currentTime = 0;
+    cout << "\nХотите перемотать трек на 5 сек вперед? (y/n): ";
+    cin >> question;
+    if (question == 'y' || question == 'Y') {
+        trackProgress.jump_5sec_timeline(&trackProgress.currentTime);
     }
+    cout << "Текущий прогресс трека: " << trackProgress.currentTime << " секунд\n";
+
+    return 0;
 }
