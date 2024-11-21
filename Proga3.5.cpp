@@ -20,6 +20,74 @@ public:
     }
 };
 
+class PlaylistSettings {
+private:
+    bool shuffle; // Режим случайного воспроизведения
+    bool repeat;  // Режим повтора
+
+public:
+    void inputSettings() {
+        int input;
+
+        cout << "Введите режим случайного воспроизведения (1 - включено, 0 - выключено): ";
+        cin >> input;
+        shuffle = (input == 1);
+
+        cout << "Введите режим повторного воспроизведения (1 - включено, 0 - выключено): ";
+        cin >> input;
+        repeat = (input == 1);
+    }
+
+    void print() const {
+        cout << "Случайное воспроизведение: " << (shuffle ? "включено" : "выключено")
+            << "\nПовторное воспроизведение: " << (repeat ? "включено" : "выключено") << endl;
+    }
+};
+
+
+class Device {
+private:
+    static constexpr const char* deviceType = "Audio Device"; // Тип устройства (статический)
+    string deviceName; // Название устройства
+    int maxVolume;     // Максимальная громкость
+    int currentVolume; // Текущая громкость
+
+public:
+    void set(const string& name, int maxVol, int currVol) {
+        deviceName = name;
+        maxVolume = maxVol;
+        currentVolume = currVol;
+    }
+
+    void print() const {
+        cout << "Название устройства: " << deviceName
+            << "\nМаксимальная громкость: " << maxVolume
+            << "\nТекущая громкость: " << currentVolume << endl;
+    }
+
+    static void printDeviceType() {
+        cout << "Тип устройства: " << deviceType << endl;
+    }
+};
+
+class AudioSettings {
+private:
+    int volume;   // Уровень громкости
+    int balance;  // Баланс каналов
+
+public:
+    void set(int vol, int bal) {
+        volume = vol;
+        balance = bal;
+    }
+
+    void print() const {
+        cout << "Громкость: " << volume
+            << "\nБаланс: " << balance << endl;
+    }
+};
+
+
 class Content {
 private:
     string title;  // Название трека
@@ -166,6 +234,23 @@ int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
+    // Работа с Device
+    Device device;
+    device.set("Мультимедиа система", 100, 50);
+    device.print();
+    Device::printDeviceType();
+
+    // Работа с AudioSettings
+    AudioSettings audioSettings;
+    audioSettings.set(70, 0); // Громкость 70, баланс 0
+    audioSettings.print();
+
+    // Работа с PlaylistSettings
+    PlaylistSettings playlistSettings;
+    playlistSettings.inputSettings();
+    playlistSettings.print();
+
+    // Работа с пользователями и плейлистами
     int numUsers;
     cout << "Введите количество пользователей: ";
     cin >> numUsers;
@@ -187,16 +272,15 @@ int main() {
         usersArray[i].print_user_playlists();
     }
 
-    // Демонстрация работы указателя
+    // Демонстрация работы TrackProgress
     char question;
     TrackProgress trackProgress;
     trackProgress.currentTime = 0;
-    cout << "\nХотите перемотать трек на 5 сек вперед? (y/n): ";
+    cout << "Хотите перемотать трек на 5 сек вперед? (y/n): ";
     cin >> question;
     if (question == 'y' || question == 'Y') {
         trackProgress.jump_5sec_timeline(&trackProgress.currentTime);
     }
     cout << "Текущий прогресс трека: " << trackProgress.currentTime << " секунд\n";
 
-    return 0;
 }
